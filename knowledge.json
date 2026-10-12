@@ -1,0 +1,31 @@
+{
+  "company_name": "Architech Systems",
+  "bot_name": "Leea Bot",
+  "company_description": "Architech Systems menawarkan penyelesaian automasi perniagaan dan sistem digital, termasuk bot WhatsApp perniagaan dan portal pendidikan Gerak Gempur Cikgu Leea. Rujukan: https://www.architechsystems.my/",
+  "contact_method": "sila hubungi pasukan melalui halaman Contact atau butang WhatsApp di https://www.architechsystems.my/ untuk membincangkan keperluan dan langkah seterusnya.",
+  "business_hours": "",
+  "payment_method": "",
+  "products": [
+    {
+      "name": "Sistem Leea & Bot WhatsApp",
+      "aliases": ["sistem leea", "bot whatsapp", "leea portal"],
+      "pricing": "Harga Sistem Leea & Bot WhatsApp yang dipaparkan di https://www.architechsystems.my/pricing : Basic RM130/bulan + setup RM149; Pro RM130/bulan + setup RM499; Advanced RM130/bulan + setup RM999. Semak skop pakej dan harga semasa dengan pasukan sebelum membuat bayaran.",
+      "description": "Sistem LeeA ialah bot perbualan WhatsApp Architech Systems untuk pertanyaan awal dan sokongan pelanggan. Dashboard klien memerlukan login; ia memaparkan prospek dan sejarah mesej. Balasan manual dan mod AI/manusia tersedia jika akses serta sambungan berfungsi; mod manusia menghentikan balasan AI bagi chat tersebut. Demo dashboard awam hanya simulasi dengan data rekaan, bukan akaun pelanggan sebenar. Modul e-dompet, komisen ejen, pembayaran dan integrasi lain bergantung pada skop serta pengesahan staf; jangan anggap sudah aktif. Bot telefon ini tidak boleh melihat chat WhatsApp, mengesahkan bayaran atau menyerahkan prospek secara automatik.",
+      "how_to_buy": "Hubungi pasukan Architech Systems melalui halaman Contact atau butang WhatsApp di https://www.architechsystems.my/ untuk membincangkan keperluan dan proses pemasangan."
+    },
+    {
+      "name": "Gerak Gempur Cikgu Leea",
+      "aliases": ["gerak gempur", "cikgu leea"],
+      "pricing": "Harga Gerak Gempur Cikgu Leea yang dipaparkan di https://www.architechsystems.my/pricing : Basic RM39.90, Pro RM69.90, Full / All-in-One RM99.90, VIP RM129.90; semuanya bayaran sekali. Semak harga semasa dan aktivasi dengan pasukan.",
+      "description": "Gerak Gempur Cikgu Leea ialah aplikasi latihan kuiz interaktif untuk sekolah rendah dan menengah, dengan pakej bayaran sekali, pilihan aktivasi peranti, modul disiplin ibu bapa dan ganjaran e-dompet tertakluk kepada fungsi yang tersedia. Ia produk berasingan daripada Sistem Leea korporat; pakej RM130/bulan Sistem Leea bukan harga aplikasi ini. Menurut maklumat WhatsApp Architech Systems, tempat versi 1 sudah penuh; versi 2 dirancang dengan kapasiti tambahan tetapi tarikh pelancaran, jumlah tempat dan pembukaan pendaftaran belum disahkan. Demo laman web hanyalah simulasi, bukan akaun atau ganjaran sebenar.",
+      "how_to_buy": "Tempat Gerak Gempur versi 1 sudah penuh menurut maklumat perniagaan sedia ada. Versi 2 dirancang tetapi tarikh dan pembukaan pendaftaran belum disahkan. Semak harga semasa dan maklumkan minat kepada pasukan sales melalui halaman Contact atau WhatsApp di https://www.architechsystems.my/; bot telefon tidak boleh mengesahkan tempahan tempat atau menjanjikan panggilan susulan."
+    },
+    {
+      "name": "AI Call Center",
+      "aliases": ["ai call centre", "call center", "call centre", "pusat panggilan ai"],
+      "description": "AI Call Center disenaraikan sebagai Coming Soon di https://www.architechsystems.my/pricing . Bot telefon ini ialah prototaip webhook panggilan masuk, belum diuji melalui panggilan sebenar atau tersedia untuk pelanggan. Demo browser ialah projek berasingan.",
+      "pricing": "AI Call Center masih Coming Soon di https://www.architechsystems.my/pricing . Harga yang dipaparkan ialah cadangan pelan Basic RM250/bulan + setup RM499, Pro RM490/bulan + setup RM999, Advanced RM990/bulan + setup RM1,999; fungsi penuh dan ketersediaan belum diumumkan. Jangan anggap pelan ini sudah boleh dibeli; hubungi pasukan untuk status terkini.",
+      "how_to_buy": "AI Call Center masih Coming Soon, belum tersedia untuk pembelian. Hubungi pasukan Architech Systems melalui https://www.architechsystems.my/ untuk status terkini."
+    }
+  ]
+}

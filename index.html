@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ms-MY">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leea Bot | Demo panggilan</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #111215; color: #f4f4f6; font-family: system-ui, sans-serif; }
+    main { max-width: 480px; min-height: 100dvh; margin: auto; background: #1d1e22; display: flex; flex-direction: column; text-align: center; }
+    .call-header { padding: 2.5rem 1rem 0; }
+    .eyebrow { color: #bcbec5; margin: 0 0 1rem; }
+    h1 { font-size: clamp(2.8rem, 10vw, 4rem); font-weight: 400; margin: 0; }
+    .number { font-size: 1.25rem; color: #c6c7cc; margin: .5rem 0 2.5rem; }
+    .avatar { display: grid; place-items: center; width: 170px; height: 170px; margin: auto; border-radius: 50%; background: #911b18; font-size: 6rem; font-weight: 500; }
+    .notice { font-size: .85rem; color: #bcbec5; padding: 0 1.5rem; margin: 1.5rem auto; max-width: 370px; }
+    .conversation { padding: 0 1.5rem 1rem; text-align: left; }
+    #status { color: #bcbec5; min-height: 2.5rem; font-size: .9rem; }
+    #response { white-space: pre-wrap; background: #303137; padding: .85rem 1rem; border-radius: 14px; max-height: 150px; overflow: auto; }
+    .text-fallback { display: flex; gap: .5rem; margin-top: 1rem; }
+    .text-fallback input { min-width: 0; flex: 1; padding: .7rem; border-radius: 8px; border: 1px solid #777; background: #303137; color: white; font: inherit; }
+    .text-fallback button { background: #249e68; border-radius: 8px; padding: .7rem 1rem; }
+    .controls { margin-top: auto; background: #292a2f; border-radius: 32px 32px 0 0; padding: 1rem 1.25rem 2rem; }
+    button { cursor: pointer; color: white; border: 0; font: inherit; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .call { background: #249e68; border-radius: 50px; padding: 1rem 3rem; font-size: 1.2rem; }
+    .end { background: #ee685f; border-radius: 50px; padding: 1rem 3rem; font-size: 1.2rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <header class="call-header">
+    <p class="eyebrow">◈ &nbsp; Demo panggilan · Dalam browser</p>
+    <h1>Leea Bot</h1>
+    <p class="number">Mobile 60183172114</p>
+    <div class="avatar" aria-hidden="true">L</div>
+    <p class="notice">Simulasi suara dalam browser sahaja; bukan panggilan telefon. Nombor dipaparkan untuk reka bentuk, bukan didail. AI Call Center belum tersedia sebagai perkhidmatan telco.</p>
+  </header>
+  <section class="conversation" aria-label="Perbualan demo">
+    <p id="status" role="status" aria-live="polite">Mikrofon dan suara bergantung pada sokongan browser.</p>
+    <div id="response" aria-live="polite">Tekan Call untuk mula.</div>
+    <form id="text-fallback" class="text-fallback" hidden>
+      <input id="question" type="text" aria-label="Soalan untuk Leea Bot" placeholder="Taip soalan di sini" maxlength="500" required>
+      <button type="submit">Hantar</button>
+    </form>
+  </section>
+  <div class="controls">
+    <button id="call" class="call" type="button">&#9742; &nbsp; Call Leea Bot</button>
+    <button id="end" class="end" type="button" hidden>&#9742; &nbsp; Tamat panggilan</button>
+  </div>
+</main>
+<script>
+  const response = document.getElementById('response');
+  const status = document.getElementById('status');
+  const callButton = document.getElementById('call');
+  const endButton = document.getElementById('end');
+  const fallback = document.getElementById('text-fallback');
+  const questionInput = document.getElementById('question');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const microphoneErrors = {
+    'not-allowed': 'Akses mikrofon ditolak. Benarkan mikrofon untuk laman ini dalam tetapan browser, kemudian cuba lagi.',
+    'service-not-allowed': 'Servis pengecaman suara tidak dibenarkan oleh browser. Buka pautan demo dalam Chrome atau Edge biasa.',
+    'audio-capture': 'Mikrofon tidak dikesan. Semak mikrofon dan tetapan input Windows.',
+    'no-speech': 'Tiada suara dikesan. Cuba bercakap lebih dekat dengan mikrofon.',
+    'network': 'Servis pengecaman suara tidak dapat dihubungi. Cuba buka dalam Chrome atau Edge biasa; sementara itu, taip soalan di bawah.',
+    'language-not-supported': 'Pengecaman Bahasa Melayu tidak disokong pada browser ini.'
+  };
+  let recognition, audio, ringTimer, answerTimer, active = false, listening = false;
+  let speechAudio, speechUrl, speechRequest;
+  let generation = 0;
+  let typedMode = false;
+  const greeting = 'Helo, saya Leea Bot. Ada apa yang boleh saya bantu?';
+  function showFallback() { fallback.hidden = false; questionInput.focus(); }
+  if (!SpeechRecognition) {
+    status.textContent = 'Mikrofon tidak disokong; anda masih boleh menaip soalan.';
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ms-MY';
+    recognition.interimResults = false;
+    recognition.onstart = () => { if (active) status.textContent = 'Sedang mendengar... Sila cakap sekarang.'; };
+    recognition.onresult = event => { if (active) ask(event.results[0][0].transcript); };
+    recognition.onerror = event => {
+      if (!active) return;
+      listening = false;
+      if (event.error === 'no-speech') {
+        status.textContent = microphoneErrors['no-speech'];
+        return;
+      }
+      status.textContent = microphoneErrors[event.error] || 'Pengecaman suara gagal. Cuba Chrome atau Edge biasa.';
+      showFallback();
+    };
+    recognition.onend = () => {
+      listening = false;
+      if (active && status.textContent === microphoneErrors['no-speech']) {
+        setTimeout(() => { if (active && !listening && status.textContent === microphoneErrors['no-speech']) listen(); }, 1500);
+      }
+    };
+  }
+  function listen() {
+    if (!active || listening || !recognition) return;
+    try {
+      recognition.start();
+      listening = true;
+      status.textContent = 'Memulakan mikrofon...';
+    } catch {
+      status.textContent = 'Mikrofon belum sedia. Tamatkan panggilan dan cuba lagi.';
+      showFallback();
+    }
+  }
+  function stopSpeech() {
+    speechRequest?.abort();
+    speechRequest = null;
+    if (speechAudio) { speechAudio.pause(); speechAudio = null; }
+    if (speechUrl) { URL.revokeObjectURL(speechUrl); speechUrl = null; }
+    window.speechSynthesis?.cancel();
+    browserUtterance = null;
+  }
+  let browserUtterance;
+  function browserVoice(text, after, token, reason) {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+      status.textContent = `${reason} Suara browser tidak tersedia; jawapan boleh dibaca.`;
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ms-MY';
+    utterance.rate = 0.95;
+    const voices = speechSynthesis.getVoices();
+    utterance.voice = voices.find(voice => voice.lang.toLowerCase() === 'ms-my') ||
+      voices.find(voice => voice.lang.toLowerCase().startsWith('ms')) || null;
+    utterance.onend = () => { if (active && token === generation) after(); };
+    utterance.onerror = () => {
+      if (active && token === generation) status.textContent = `${reason} Suara browser juga gagal; jawapan boleh dibaca.`;
+    };
+    browserUtterance = utterance;
+    status.textContent = `${reason} Menggunakan suara browser.`;
+    speechSynthesis.speak(utterance);
+  }
+  async function speak(text, after) {
+    const token = generation;
+    stopSpeech();
+    const controller = new AbortController();
+    speechRequest = controller;
+    try {
+      const result = await fetch('/api/tts', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }), signal: controller.signal });
+      if (!result.ok) {
+        const detail = await result.json().catch(() => ({}));
+        throw new Error(detail.error || `Servis suara gagal (HTTP ${result.status}).`);
+      }
+      const blob = await result.blob();
+      if (!active || token !== generation) return;
+      speechUrl = URL.createObjectURL(blob);
+      speechAudio = new Audio(speechUrl);
+      speechAudio.onended = () => { stopSpeech(); if (active && token === generation) after(); };
+      speechAudio.onerror = () => { stopSpeech(); if (active && token === generation) {
+        browserVoice(text, after, token, 'Audio Cartesia tidak dapat dimainkan.');
+      } };
+      await speechAudio.play();
+    } catch (error) {
+      if (active && token === generation) {
+        stopSpeech();
+        browserVoice(text, after, token, error.message || 'Suara Cartesia tidak tersedia.');
+      }
+    }
+  }
+  function ring() {
+    if (!active || !audio) return;
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.frequency.value = 440;
+    gain.gain.value = 0.09;
+    oscillator.connect(gain).connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.45);
+  }
+  async function ask(question) {
+    stopSpeech();
+    const token = ++generation;
+    status.textContent = 'Sedang mencari jawapan...';
+    try {
+      const result = await fetch('/api/answer', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const data = await result.json();
+      if (!result.ok) throw new Error(data.error || 'Ralat pelayan');
+      if (!active || token !== generation) return;
+      response.textContent = data.answer;
+      status.textContent = 'Leea Bot sedang menjawab...';
+      speak(data.answer, () => { if (!typedMode && recognition) listen(); else if (typedMode) status.textContent = 'Taip soalan seterusnya di bawah.'; });
+    } catch {
+      if (active && token === generation) status.textContent = 'Jawapan tidak dapat dimuatkan. Tamatkan panggilan dan cuba lagi.';
+    }
+  }
+  fallback.onsubmit = event => {
+    event.preventDefault();
+    if (!active || !questionInput.value.trim()) return;
+    typedMode = true;
+    if (listening) recognition?.abort();
+    const question = questionInput.value.trim();
+    questionInput.value = '';
+    ask(question);
+  };
+  callButton.onclick = async () => {
+    if (active) return;
+    active = true;
+    typedMode = false;
+    generation++;
+    callButton.hidden = true;
+    endButton.hidden = false;
+    fallback.hidden = true;
+    response.textContent = 'Menghubungkan ke Leea Bot...';
+    status.textContent = 'Calling...';
+    try {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      await audio.resume();
+    } catch { status.textContent = 'Nada panggilan tidak tersedia; sedang menghubungkan...'; }
+    if (!active) return;
+    ring();
+    ringTimer = setInterval(ring, 1200);
+    answerTimer = setTimeout(() => {
+      if (!active) return;
+      clearInterval(ringTimer);
+      audio?.close(); audio = null;
+      response.textContent = greeting;
+      fallback.hidden = false;
+      status.textContent = 'Leea Bot sedang menyapa...';
+      speak(greeting, () => { if (!typedMode) listen(); else status.textContent = 'Taip soalan seterusnya di bawah.'; });
+    }, 3200);
+  };
+  endButton.onclick = () => {
+    active = false;
+    generation++;
+    clearInterval(ringTimer);
+    clearTimeout(answerTimer);
+    audio?.close(); audio = null;
+    recognition?.abort();
+    listening = false;
+    stopSpeech();
+    callButton.hidden = false;
+    endButton.hidden = true;
+    fallback.hidden = true;
+    status.textContent = 'Panggilan tamat. Tekan Call untuk mula semula.';
+  };
+</script>
+</body>
+</html>
